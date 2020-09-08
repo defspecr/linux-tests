@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+    nginx_proxy:
+        image: nginx:latest
+        ports:
+           - "8888:80"
+        volumes:
+           - ./proxy/conf.d:/etc/nginx/conf.d
+           - ./proxy/logs:/var/log/nginx
+        networks:
+           net01:
+              ipv4_address: 172.16.10.2
+           default:
+        links:
+           - nginx
+
+    nginx:
+        image: nginx:latest
+        ports:
+            - "80:80"
+        volumes:
+            - ./ng/conf.d:/etc/nginx/conf.d
+            - ./ng/www:/var/www
+            - ./ng/logs:/var/log/nginx            
+        networks:
+           net01:
+               ipv4_address: 172.16.10.3
+           
+        links:
+            - php
+    php:
+        build: ./images/php
+        volumes:
+            - ./ng/www:/var/www
+        networks:
+            net01:
+               ipv4_address: 172.16.10.4
+
+
+networks:
+    net01:
+       driver: bridge
+       internal: true
+       ipam:
+          driver: default
+          config:
+              - subnet: 172.16.10.0/24
+    default:
+       driver: bridge
